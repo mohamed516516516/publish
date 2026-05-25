@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام الإدارة - تباين عالٍ (أبيض وأسود)</title>
+    <title>نظام الإدارة - تباين عالٍ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #fff !important; color: #000 !important; font-family: sans-serif; font-weight: 800; }
@@ -14,40 +14,40 @@
 </head>
 <body class="p-6">
 
-    <h1 class="text-4xl font-black mb-6 text-center border-b-4 border-black pb-4">لوحة المهام (تباين عالٍ)</h1>
+    <h1 class="text-4xl font-black mb-6 text-center border-b-4 border-black pb-4">لوحة المهام والاعتماد</h1>
 
     <div class="high-contrast p-6 mb-8">
-        <form id="taskForm" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <form id="taskForm" class="grid grid-cols-1 md:grid-cols-7 gap-4">
             <select id="member" onchange="updateTaskOptions()" required>
-                <option value="">اسم العضو</option>
+                <option value="">العضو</option>
                 <option>محمد قائد الفريق</option><option>علي</option><option>إيهاب</option>
             </select>
             <select id="taskType" required><option value="">المهمة</option></select>
             <input type="text" id="article" placeholder="عنوان المقال..." required>
             <select id="reviewer"><option>بدون مدقق</option><option>علي</option><option>محمد</option></select>
             <select id="status"><option>قيد الترجمة</option><option>قيد الكتابة</option><option>قيد التدقيق</option><option>قيد المراجعة</option><option>قيد الاعتماد</option><option>في النشر</option></select>
-            <button type="submit" class="bg-black text-white hover:bg-gray-700">تـسـجـيـل</button>
+            <select id="grade"><option>-</option><option>A</option><option>B</option><option>C</option></select>
+            <button type="submit" class="bg-black text-white">تسجيل</button>
         </form>
     </div>
 
     <table class="w-full border-collapse high-contrast text-center">
         <thead>
             <tr>
-                <th class="p-4">التاريخ والوقت</th><th>العضو</th><th>المهمة</th><th>المقال</th><th>المدقق</th><th>الحالة</th><th>إجراء</th>
+                <th class="p-4">التاريخ</th><th>العضو</th><th>المهمة</th><th>المقال</th><th>المدقق</th><th>الحالة</th><th>الدرجة</th><th>إجراء</th>
             </tr>
         </thead>
         <tbody id="taskTableBody"></tbody>
     </table>
 
     <script>
-        // 6 ألوان ساخنة للحالات التحريرية
         const statusColors = {
-            'قيد الترجمة': 'bg-[#FF0000]',  // أحمر
-            'قيد الكتابة': 'bg-[#FF8C00]',  // برتقالي
-            'قيد التدقيق': 'bg-[#FFD700]',  // ذهبي
-            'قيد المراجعة': 'bg-[#32CD32]', // أخضر ليموني
-            'قيد الاعتماد': 'bg-[#00BFFF]', // أزرق سماوي
-            'في النشر': 'bg-[#FF00FF]'      // فوشيا
+            'قيد الترجمة': 'bg-[#FF0000]',
+            'قيد الكتابة': 'bg-[#FF8C00]',
+            'قيد التدقيق': 'bg-[#FFD700]',
+            'قيد المراجعة': 'bg-[#32CD32]',
+            'قيد الاعتماد': 'bg-[#00BFFF]',
+            'في النشر': 'bg-[#FF00FF]'
         };
 
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
@@ -68,16 +68,17 @@
             const tbody = document.getElementById('taskTableBody');
             tbody.innerHTML = tasks.map((t, i) => `
                 <tr class="border-b-4 border-black">
-                    <td class="p-4">${new Date(t.timestamp).toLocaleString('ar-EG')}</td>
+                    <td class="p-4">${new Date(t.timestamp).toLocaleTimeString()}</td>
                     <td class="p-4 font-black">${t.member}</td>
                     <td class="p-4">${t.task}</td>
                     <td class="p-4">${t.article}</td>
-                    <td class="p-4"><select onchange="tasks[${i}].reviewer=this.value; saveAndRender()" class="w-full">${['بدون مدقق', 'علي', 'محمد'].map(o => `<option ${t.reviewer===o?'selected':''}>${o}</option>`).join('')}</select></td>
+                    <td class="p-4"><select onchange="tasks[${i}].reviewer=this.value; saveAndRender()">${['بدون مدقق', 'علي', 'محمد'].map(o => `<option ${t.reviewer===o?'selected':''}>${o}</option>`).join('')}</select></td>
                     <td class="p-4">
                         <select class="${statusColors[t.status]} text-black font-black w-full border-2 border-black" onchange="tasks[${i}].status=this.value; saveAndRender()">
                             ${statusList.map(o => `<option class="bg-white text-black" ${t.status===o?'selected':''}>${o}</option>`).join('')}
                         </select>
                     </td>
+                    <td class="p-4"><select onchange="tasks[${i}].grade=this.value; saveAndRender()">${['-','A','B','C'].map(o => `<option ${t.grade===o?'selected':''}>${o}</option>`).join('')}</select></td>
                     <td class="p-4"><button onclick="tasks.splice(${i},1); saveAndRender()" class="bg-black text-white px-4 py-2">حذف</button></td>
                 </tr>
             `).join('');
@@ -91,6 +92,7 @@
                 article: document.getElementById('article').value,
                 reviewer: document.getElementById('reviewer').value,
                 status: document.getElementById('status').value,
+                grade: document.getElementById('grade').value,
                 timestamp: new Date().getTime()
             });
             saveAndRender();
